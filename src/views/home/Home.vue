@@ -1,7 +1,7 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-    <scroll class="content">
+    <scroll class="content" ref="scroll">
       <home-swiper :banners="banners" />
       <home-recommend :recommends="recommends" />
       <feature-view/>
@@ -10,7 +10,7 @@
                   @tabClick="tabClick" />
       <goodsList :goods="goods[crrentType].list" />
     </scroll>
-    
+    <back-top @click.native="backClick"></back-top>
   </div>
 </template>
 
@@ -23,6 +23,7 @@
   import TabControl from 'components/content/tabcontrol/TabControl'
   import GoodsList from 'components/content/goods/GoodsList'
   import Scroll from 'components/common/scroll/Scroll'
+  import BackTop from 'components/content/backtop/BackTop'
   
   export default {
     name:'Home',
@@ -33,7 +34,8 @@
       FeatureView,
       TabControl,
       GoodsList,
-      Scroll
+      Scroll,
+      BackTop
     },
     data (){
       return {
@@ -56,6 +58,26 @@
     },
     methods:{
       /**
+       * 事件监听
+       */
+      backClick(){
+        console.log('asdasdasd')
+        this.$refs.scroll.scroll.scrollto(0,0,500)
+      },
+      tabClick(index){
+        switch(index) {
+          default:
+            this.crrentType = 'pop'
+            break;
+          case 1:
+            this.crrentType = 'new'
+            break;
+          case 2:
+            this.crrentType = 'sell'
+            break;
+        }
+      },
+      /**
        * 网络请求
        */
       getHomeMultidata(){
@@ -71,22 +93,6 @@
           this.goods[type].page = page
         })
       },
-      /**
-       * 事件监听
-       */
-      tabClick(index){
-        switch(index) {
-          default:
-            this.crrentType = 'pop'
-            break;
-          case 1:
-            this.crrentType = 'new'
-            break;
-          case 2:
-            this.crrentType = 'sell'
-            break;
-        }
-      }
     }
   }
 </script>
