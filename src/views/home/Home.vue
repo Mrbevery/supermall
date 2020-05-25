@@ -71,11 +71,30 @@
       this.getHomeGoods('pop')
       this.getHomeGoods('new')
       this.getHomeGoods('sell')
+
+      
+    },
+    mounted () {
+      const refresh = this.debounce(this.$refs.scroll.refresh,500);
+      this.$bus.$on('itemImageLoad',() => {
+        refresh()
+      })
     },
     methods: {
       /**
        * 事件监听相关的方法
        */
+      //防抖函数(需要防抖函数，等待时间)
+      debounce(func,delay){
+        let timer = null
+
+        return function (...args) {
+          if(timer) clearTimeout(timer)
+          timer = setTimeout(() => {
+            func.apply(this,args)
+          },delay)
+        }
+      },
       tabClick(index) {
         switch (index) {
           case 0:
