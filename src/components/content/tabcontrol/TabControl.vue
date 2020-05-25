@@ -1,50 +1,47 @@
 <template>
   <div class="tab-control">
-    <div v-for="(item,index) in titles" 
-        class="tab-control-item" 
-        :class="{active:index == isActive}"
-        @click="itnClick(index)">
+    <div v-for="(item, index) in titles"
+         class="tab-control-item"
+         :class="{active: index === currentIndex}"
+         @click="itemClick(index)">
       <span>{{item}}</span>
     </div>
-    
   </div>
 </template>
 
 <script>
-export default {
-  name: 'TabControl',
-  data(){
-    return {
-      isActive:0
-    }
-  },
-  props:{
-    titles:{
-      type:Array,
-      default(){
-        return []
+  export default {
+    name: "TabControl",
+    props: {
+      titles: {
+        type: Array,
+        default() {
+          return []
+        }
+      }
+    },
+    data() {
+      return {
+        currentIndex: 0
+      }
+    },
+    methods: {
+      itemClick(index) {
+        this.currentIndex = index;
+        this.$emit('tabClick', index)
       }
     }
-  },
-  methods: {
-    itnClick(index){
-      this.isActive = index
-      this.$emit('tabClick',index)
-    }
-  },
-  components: {
   }
-}
 </script>
 
 <style scoped>
   .tab-control {
     display: flex;
     text-align: center;
-    line-height: 40px;
     font-size: 15px;
+    height: 40px;
+    line-height: 40px;
     background-color: #fff;
-    z-index: 9;
   }
 
   .tab-control-item {
@@ -60,6 +57,6 @@ export default {
   }
 
   .active span {
-    border-bottom: 2px solid var(--color-high-text);
+    border-bottom: 3px solid var(--color-tint);
   }
 </style>

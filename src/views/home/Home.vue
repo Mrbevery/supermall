@@ -1,125 +1,163 @@
 <template>
-  <div id="home">
+  <div id="home" class="wrapper">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-    <scroll class="content" ref="scroll">
-      <home-swiper :banners="banners" />
-      <home-recommend :recommends="recommends" />
+    <scroll class="content"
+            ref="scroll"
+            :probe-type="3"
+            @scroll="contentScroll"
+            :pull-up-load="true"
+            @pullingUp="loadMore">
+      <home-swiper :banners="banners"/>
+      <recommend-view :recommends="recommends"/>
       <feature-view/>
-      <tab-control class="tab-control" 
-                  :titles="['流行','新款','精选']"
-                  @tabClick="tabClick" />
-      <goodsList :goods="goods[crrentType].list" />
+      <tab-control class="tab-control"
+                   :titles="['流行', '新款', '精选']"
+                   @tabClick="tabClick"/>
+      <good-list :goods="showGoods"/>
     </scroll>
-    <back-top @click.native="backClick"></back-top>
+    <div>呵呵呵呵</div>
+    <back-top @click.native="backClick" v-show="isShowBackTop"/>
   </div>
 </template>
 
 <script>
-  import NavBar from 'components/common/navbar/NavBar'
-  import {getHomeMultidata , getHomeGoodsdata} from 'network/home'
   import HomeSwiper from './childComps/HomeSwiper'
-  import HomeRecommend from './childComps/HomeRecommend'
+  import RecommendView from './childComps/RecommendView'
   import FeatureView from './childComps/FeatureView'
-  import TabControl from 'components/content/tabcontrol/TabControl'
-  import GoodsList from 'components/content/goods/GoodsList'
+
+  import NavBar from 'components/common/navbar/NavBar'
+  import TabControl from 'components/content/tabControl/TabControl'
+  import GoodList from 'components/content/goods/GoodsList'
   import Scroll from 'components/common/scroll/Scroll'
-  import BackTop from 'components/content/backtop/BackTop'
-  
+  import BackTop from 'components/content/backTop/BackTop'
+
+  import { getHomeMultidata, getHomeGoods } from "network/home"
+
   export default {
-    name:'Home',
+    name: "Home",
     components: {
-      NavBar,
       HomeSwiper,
-      HomeRecommend,
+      RecommendView,
       FeatureView,
+      NavBar,
       TabControl,
-      GoodsList,
+      GoodList,
       Scroll,
       BackTop
     },
-    data (){
+    data() {
       return {
-        banners:[],
-        recommends:[],
-        goods:{
-          'pop':{ page:0, list:[] },
-          'new':{ page:0, list:[] },
-          'sell':{ page:0, list:[] },
+        banners: [],
+        recommends: [],
+        goods: {
+          'pop': {page: 0, list: []},
+          'new': {page: 0, list: []},
+          'sell': {page: 0, list: []},
         },
-        crrentType:'pop'
+        currentType: 'pop',
+        isShowBackTop: false
+      }
+    },
+    computed: {
+      showGoods() {
+        return this.goods[this.currentType].list
       }
     },
     created() {
-      this.getHomeMultidata();
+      // 1.请求多个数据
+      this.getHomeMultidata()
 
-      this.getHomeGoodsdata('pop');
-      this.getHomeGoodsdata('new');
-      this.getHomeGoodsdata('sell');
+      // 2.请求商品数据
+      this.getHomeGoods('pop')
+      this.getHomeGoods('new')
+      this.getHomeGoods('sell')
     },
-    methods:{
+    methods: {
       /**
-       * 事件监听
+       * 事件监听相关的方法
        */
-      backClick(){
-        console.log('asdasdasd')
-        this.$refs.scroll.scroll.scrollto(0,0,500)
-      },
-      tabClick(index){
-        switch(index) {
-          default:
-            this.crrentType = 'pop'
-            break;
+      tabClick(index) {
+        switch (index) {
+          case 0:
+            this.currentType = 'pop'
+            break
           case 1:
-            this.crrentType = 'new'
-            break;
+            this.currentType = 'new'
+            break
           case 2:
-            this.crrentType = 'sell'
-            break;
+            this.currentType = 'sell'
+            break
         }
       },
+      backClick() {
+        this.$refs.scroll.scrollTo(0, 0)
+      },
+      contentScroll(position) {
+        this.isShowBackTop = (-position.y) > 1000
+      },
+      loadMore() {
+        this.getHomeGoods(this.currentType)
+      },
       /**
-       * 网络请求
+       * 网络请求相关的方法
        */
-      getHomeMultidata(){
+      getHomeMultidata() {
         getHomeMultidata().then(res => {
+          // this.result = res;
           this.banners = res.data.banner.list;
           this.recommends = res.data.recommend.list;
-        });
-      },
-      getHomeGoodsdata(type){
-        const page = this.goods[type].page + 1
-        getHomeGoodsdata(type,page).then(res => {
-          this.goods[type].list.push(...res.data.list);
-          this.goods[type].page = page
         })
       },
+      getHomeGoods(type) {
+        const page = this.goods[type].page + 1
+        getHomeGoods(type, page).then(res => {
+          this.goods[type].list.push(...res.data.list)
+          this.goods[type].page += 1
+
+          this.$refs.scroll.finishPullUp()
+        })
+      }
     }
   }
 </script>
 
-<style>
-  .tab-control {
-    position: sticky;
-    top:44px;
-  }
-
+<style scoped>
   #home {
-    padding-top: 44px;
+    /*padding-top: 44px;*/
+    height: 100vh;
+    position: relative;
   }
 
   .home-nav {
     background-color: var(--color-tint);
-    color: white;
+    color: #fff;
 
     position: fixed;
     left: 0;
-    top: 0;
     right: 0;
+    top: 0;
+    z-index: 9;
+  }
+
+  .tab-control {
+    position: sticky;
+    top: 44px;
     z-index: 9;
   }
 
   .content {
-    height: 300px;
+    overflow: hidden;
+
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
   }
 
+  /*.content {*/
+    /*height: calc(100% - 93px);*/
+    /*overflow: hidden;*/
+    /*margin-top: 44px;*/
+  /*}*/
 </style>
